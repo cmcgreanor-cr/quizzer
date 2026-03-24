@@ -14,6 +14,7 @@ export default function HostView() {
   const [copied, setCopied] = useState(false)
   const [notFound, setNotFound] = useState(false)
   const [timeLeft, setTimeLeft] = useState(null)
+  const [confirmEnd, setConfirmEnd] = useState(false)
   const timerRef = useRef(null)
 
   const joinUrl = `${window.location.origin}${window.location.pathname}#/join/${id}`
@@ -55,6 +56,7 @@ export default function HostView() {
     tick()
     timerRef.current = setInterval(tick, 500)
     return () => clearInterval(timerRef.current)
+    setConfirmEnd(false)
   }, [quiz?.currentQuestion, quiz?.showAnswer, quiz?.status, quiz?.questionStartedAt, id])
 
   if (notFound) return (
@@ -319,12 +321,30 @@ export default function HostView() {
                 </div>
                 {/* End quiz early — always available during active state */}
                 {currentQ < quiz.questions.length - 1 && (
-                  <button
-                    onClick={() => { if (window.confirm('End the quiz now and show final results?')) endQuiz() }}
-                    className="text-white/25 hover:text-red-400 text-xs font-semibold transition-colors py-1"
-                  >
-                    End quiz early
-                  </button>
+                  confirmEnd ? (
+                    <div className="flex items-center gap-3">
+                      <span className="text-white/50 text-xs">End quiz now?</span>
+                      <button
+                        onClick={() => { endQuiz(); setConfirmEnd(false) }}
+                        className="bg-red-500 hover:bg-red-400 text-white text-xs font-black px-4 py-2 rounded-xl transition-colors"
+                      >
+                        Yes, end it
+                      </button>
+                      <button
+                        onClick={() => setConfirmEnd(false)}
+                        className="text-white/40 hover:text-white text-xs font-semibold transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmEnd(true)}
+                      className="text-white/25 hover:text-red-400 text-xs font-semibold transition-colors py-1"
+                    >
+                      End quiz early
+                    </button>
+                  )
                 )}
               </div>
             </div>
