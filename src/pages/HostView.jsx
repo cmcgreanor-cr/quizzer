@@ -350,6 +350,22 @@ export default function HostView() {
             </div>
           )}
 
+          {/* Mobile leaderboard strip — shown below controls, hidden on desktop where sidebar exists */}
+          {quiz.status === 'active' && leaderboard.length > 0 && (
+            <div className="md:hidden mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 backdrop-blur-xl">
+              <h3 className="text-white/30 text-xs font-bold uppercase tracking-widest mb-2">Leaderboard</h3>
+              <div className="space-y-1.5">
+                {leaderboard.slice(0, 5).map((p, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-white/30 text-xs w-4 flex-shrink-0">{i + 1}</span>
+                    <span className="flex-1 text-sm font-semibold truncate">{p.name}</span>
+                    <span className="text-cyan-400 text-sm font-bold flex-shrink-0">{p.score.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* ENDED */}
           {quiz.status === 'ended' && (
             <div className="flex-1 flex flex-col items-center justify-center">
