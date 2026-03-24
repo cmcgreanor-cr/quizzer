@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ref, onValue, update, off } from 'firebase/database'
+import { QRCodeSVG } from 'qrcode.react'
 import { db } from '../firebase.js'
 
 const OPTION_COLORS = ['bg-red-500', 'bg-blue-500', 'bg-yellow-500', 'bg-green-500']
@@ -110,10 +111,8 @@ export default function HostView() {
 
       {/* Share banner */}
       <div className="bg-indigo-950 border-b border-indigo-800 px-5 py-2 flex items-center gap-3">
-        <div className="flex-1 min-w-0">
-          <span className="text-indigo-300 text-xs font-semibold uppercase tracking-wider mr-2">Join:</span>
-          <span className="text-white font-mono text-xs break-all">{joinUrl}</span>
-        </div>
+        <span className="text-indigo-300 text-xs font-semibold uppercase tracking-wider flex-shrink-0">Join link:</span>
+        <span className="text-white/50 font-mono text-xs truncate flex-1">{joinUrl}</span>
         <button
           onClick={copyLink}
           className="flex-shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg transition-colors"
@@ -130,13 +129,17 @@ export default function HostView() {
           {/* LOBBY */}
           {quiz.status === 'waiting' && (
             <div className="flex-1 flex flex-col items-center justify-center text-center">
-              <div className="text-7xl mb-6">🎮</div>
-              <h2 className="text-3xl font-black mb-2">Ready to start?</h2>
-              <p className="text-slate-400 mb-1">{participantCount} player{participantCount !== 1 ? 's' : ''} joined</p>
-              <p className="text-slate-500 text-sm mb-8">{quiz.questions.length} questions</p>
+              {/* QR Code */}
+              <div className="bg-white rounded-2xl p-4 mb-4 shadow-xl">
+                <QRCodeSVG value={joinUrl} size={180} />
+              </div>
+              <p className="text-slate-400 text-sm mb-6">Scan to join on any device</p>
+
+              <h2 className="text-2xl font-black mb-1">{participantCount} player{participantCount !== 1 ? 's' : ''} joined</h2>
+              <p className="text-slate-500 text-sm mb-6">{quiz.questions.length} questions</p>
 
               {participantCount > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center mb-8 max-w-md">
+                <div className="flex flex-wrap gap-2 justify-center mb-6 max-w-md">
                   {participantList.map((p, i) => (
                     <span key={i} className="bg-slate-700 text-white px-3 py-1 rounded-full text-sm font-semibold">
                       {p.name}
