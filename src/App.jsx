@@ -7,7 +7,7 @@ import JoinView from './pages/JoinView.jsx'
 
 function SetupScreen() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-6 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center p-6 text-white">
       <div className="max-w-lg w-full">
         <div className="text-5xl mb-4 text-center">🔧</div>
         <h1 className="text-3xl font-black text-center mb-2">Firebase Setup Required</h1>

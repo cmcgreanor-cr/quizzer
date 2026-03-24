@@ -8,6 +8,7 @@ const newQuestion = () => ({
   text: '',
   options: ['', '', '', ''],
   correct: 0,
+  explanation: '',
 })
 
 export default function CreateQuiz() {
@@ -28,7 +29,7 @@ export default function CreateQuiz() {
       if (!snap.exists()) { setError('Quiz not found.'); setLoading(false); return }
       const data = snap.val()
       setTitle(data.title)
-      setQuestions(data.questions)
+      setQuestions(data.questions.map(q => ({ explanation: '', ...q })))
       setQuizStatus(data.status)
       setLoading(false)
     })
@@ -82,6 +83,7 @@ export default function CreateQuiz() {
           text: q.text.trim(),
           options: q.options.map(o => o.trim()),
           correct: q.correct,
+          ...(q.explanation?.trim() ? { explanation: q.explanation.trim() } : {}),
         })),
       }
       if (isEditing) {
@@ -105,27 +107,30 @@ export default function CreateQuiz() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">Loading...</div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center text-white">
+      Loading...
+    </div>
   )
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
       <div className="max-w-2xl mx-auto p-6">
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-8 pt-2">
           <button
             onClick={() => navigate(isEditing ? `/host/${id}` : '/')}
-            className="text-slate-400 hover:text-white transition-colors text-sm"
+            className="text-white/40 hover:text-white transition-colors text-sm"
           >
             ← Back
           </button>
-          <h1 className="text-2xl font-black">{isEditing ? 'Edit Quiz' : 'Create Quiz'}</h1>
+          <img src="/cr-logo.png" alt="Cloud Revolution" className="h-6 opacity-60" />
+          <h1 className="text-2xl font-black ml-auto">{isEditing ? 'Edit Quiz' : 'Create Quiz'}</h1>
         </div>
 
         {/* Warning for non-waiting quizzes */}
         {isEditing && quizStatus !== 'waiting' && (
-          <div className="mb-6 bg-amber-900/40 border border-amber-500/60 text-amber-200 rounded-xl px-4 py-3 text-sm">
+          <div className="mb-6 bg-amber-500/10 border border-amber-500/30 text-amber-200 rounded-xl px-4 py-3 text-sm backdrop-blur-xl">
             ⚠ This quiz is currently <strong>{quizStatus}</strong>. Changes apply immediately — answers already submitted use option indices, so removing options may affect scoring.
           </div>
         )}
@@ -136,22 +141,22 @@ export default function CreateQuiz() {
           placeholder="Quiz title..."
           value={title}
           onChange={e => setTitle(e.target.value)}
-          className="w-full bg-slate-800 text-white text-2xl font-bold placeholder-slate-500 border-2 border-slate-700 focus:border-indigo-500 rounded-2xl px-5 py-4 outline-none transition-colors mb-8"
+          className="w-full bg-white/5 backdrop-blur-xl text-white text-2xl font-bold placeholder-white/20 border border-white/10 focus:border-cyan-500/50 rounded-2xl px-5 py-4 outline-none transition-all mb-8"
           autoFocus
         />
 
         {/* Questions */}
         <div className="space-y-6">
           {questions.map((q, qi) => (
-            <div key={qi} className="bg-slate-800 rounded-2xl p-5 border border-slate-700">
+            <div key={qi} className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-indigo-400 font-bold text-xs uppercase tracking-widest">
+                <span className="text-cyan-400 font-bold text-xs uppercase tracking-widest">
                   Question {qi + 1}
                 </span>
                 {questions.length > 1 && (
                   <button
                     onClick={() => removeQuestion(qi)}
-                    className="text-slate-500 hover:text-red-400 transition-colors text-xs font-semibold"
+                    className="text-white/30 hover:text-red-400 transition-colors text-xs font-semibold"
                   >
                     Remove question
                   </button>
@@ -163,7 +168,7 @@ export default function CreateQuiz() {
                 placeholder="Ask a question..."
                 value={q.text}
                 onChange={e => updateQuestion(qi, 'text', e.target.value)}
-                className="w-full bg-slate-700 text-white placeholder-slate-400 rounded-xl px-4 py-3 mb-4 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                className="w-full bg-white/5 text-white placeholder-white/30 border border-white/10 focus:border-cyan-500/40 rounded-xl px-4 py-3 mb-4 outline-none transition-all"
               />
 
               <div className="grid grid-cols-2 gap-2 mb-3">
@@ -171,7 +176,7 @@ export default function CreateQuiz() {
                   <div
                     key={oi}
                     className={`rounded-xl overflow-hidden border-2 transition-all ${
-                      q.correct === oi ? 'border-green-400' : 'border-transparent'
+                      q.correct === oi ? 'border-green-400/80' : 'border-transparent'
                     }`}
                   >
                     <div className={`${OPTION_COLORS[oi]} flex items-center gap-2 px-3 py-2`}>
@@ -208,8 +213,8 @@ export default function CreateQuiz() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-between">
-                <p className="text-slate-500 text-xs">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-white/30 text-xs">
                   Click ✓ to mark correct.{' '}
                   <span className={`${OPTION_COLORS[q.correct]} text-white px-1.5 py-0.5 rounded text-xs`}>
                     {OPTION_SHAPES[q.correct]} Option {q.correct + 1}
@@ -219,11 +224,25 @@ export default function CreateQuiz() {
                 {q.options.length < 6 && (
                   <button
                     onClick={() => addOption(qi)}
-                    className="text-indigo-400 hover:text-indigo-300 text-xs font-semibold transition-colors flex-shrink-0 ml-3"
+                    className="text-cyan-400 hover:text-cyan-300 text-xs font-semibold transition-colors flex-shrink-0 ml-3"
                   >
                     + Add option
                   </button>
                 )}
+              </div>
+
+              {/* Explanation */}
+              <div>
+                <label className="text-white/30 text-xs font-semibold uppercase tracking-wider block mb-1.5">
+                  Answer explanation <span className="normal-case font-normal">(optional — shown after reveal)</span>
+                </label>
+                <textarea
+                  placeholder="Add extra context, fun facts, or details about the correct answer..."
+                  value={q.explanation}
+                  onChange={e => updateQuestion(qi, 'explanation', e.target.value)}
+                  rows={2}
+                  className="w-full bg-white/5 text-white placeholder-white/20 border border-white/10 focus:border-cyan-500/40 rounded-xl px-4 py-3 outline-none transition-all text-sm resize-none"
+                />
               </div>
             </div>
           ))}
@@ -231,13 +250,13 @@ export default function CreateQuiz() {
 
         <button
           onClick={addQuestion}
-          className="w-full mt-4 border-2 border-dashed border-slate-700 hover:border-indigo-500 text-slate-400 hover:text-indigo-400 rounded-2xl py-4 font-semibold transition-all"
+          className="w-full mt-4 border-2 border-dashed border-white/10 hover:border-cyan-500/40 text-white/30 hover:text-cyan-400 rounded-2xl py-4 font-semibold transition-all"
         >
           + Add Question
         </button>
 
         {error && (
-          <div className="mt-4 bg-red-900/40 border border-red-500/60 text-red-300 rounded-xl px-4 py-3 text-sm">
+          <div className="mt-4 bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl px-4 py-3 text-sm backdrop-blur-xl">
             {error}
           </div>
         )}
@@ -245,7 +264,7 @@ export default function CreateQuiz() {
         <button
           onClick={save}
           disabled={saving}
-          className="w-full mt-6 mb-12 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-black text-xl py-4 rounded-2xl transition-all shadow-lg"
+          className="w-full mt-6 mb-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:from-white/5 disabled:to-white/5 disabled:text-white/30 text-white font-black text-xl py-4 rounded-2xl transition-all shadow-lg shadow-cyan-900/30"
         >
           {saving ? 'Saving...' : isEditing ? 'Save Changes →' : 'Save & Open Host View →'}
         </button>
