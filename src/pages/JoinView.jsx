@@ -3,14 +3,7 @@ import { useParams } from 'react-router-dom'
 import { ref, onValue, set, push, off } from 'firebase/database'
 import { db } from '../firebase.js'
 
-const OPTION_COLORS = [
-  'bg-red-500 hover:bg-red-400 active:bg-red-600',
-  'bg-blue-500 hover:bg-blue-400 active:bg-blue-600',
-  'bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-600',
-  'bg-green-500 hover:bg-green-400 active:bg-green-600',
-]
-const OPTION_COLORS_STATIC = ['bg-red-500', 'bg-blue-500', 'bg-yellow-500', 'bg-green-500']
-const OPTION_SHAPES = ['▲', '●', '■', '◆']
+import { OPTION_COLORS_INTERACTIVE, OPTION_COLORS, OPTION_SHAPES, optionGridCols } from '../constants.js'
 
 export default function JoinView() {
   const { id } = useParams()
@@ -167,12 +160,12 @@ export default function JoinView() {
 
         {/* Not yet answered — show answer buttons */}
         {!hasAnswered && (
-          <div className="grid grid-cols-2 gap-3 flex-1">
+          <div className={`grid ${optionGridCols(question.options.length)} gap-3 flex-1`}>
             {question.options.map((opt, oi) => (
               <button
                 key={oi}
                 onClick={() => submitAnswer(oi)}
-                className={`${OPTION_COLORS[oi]} text-white font-bold rounded-2xl p-4 flex flex-col items-center justify-center gap-2 transition-all transform active:scale-95 shadow-lg min-h-28`}
+                className={`${OPTION_COLORS_INTERACTIVE[oi]} text-white font-bold rounded-2xl p-4 flex flex-col items-center justify-center gap-2 transition-all transform active:scale-95 shadow-lg min-h-28`}
               >
                 <span className="text-3xl">{OPTION_SHAPES[oi]}</span>
                 <span className="text-center text-sm leading-snug">{opt}</span>
@@ -188,7 +181,7 @@ export default function JoinView() {
               <>
                 <div className="text-6xl animate-bounce">✋</div>
                 <h3 className="text-2xl font-black">Answer locked in!</h3>
-                <div className={`${OPTION_COLORS_STATIC[myAnswer]} inline-flex items-center gap-3 px-6 py-3 rounded-xl`}>
+                <div className={`${OPTION_COLORS[myAnswer]} inline-flex items-center gap-3 px-6 py-3 rounded-xl`}>
                   <span className="text-2xl">{OPTION_SHAPES[myAnswer]}</span>
                   <span className="font-bold">{question.options[myAnswer]}</span>
                 </div>
@@ -206,7 +199,7 @@ export default function JoinView() {
                 <div className="text-7xl">😬</div>
                 <h3 className="text-3xl font-black text-red-400">Incorrect</h3>
                 <p className="text-slate-400 text-sm">The correct answer was:</p>
-                <div className={`${OPTION_COLORS_STATIC[question.correct]} inline-flex items-center gap-3 px-5 py-3 rounded-xl`}>
+                <div className={`${OPTION_COLORS[question.correct]} inline-flex items-center gap-3 px-5 py-3 rounded-xl`}>
                   <span className="text-xl">{OPTION_SHAPES[question.correct]}</span>
                   <span className="font-bold">{question.options[question.correct]}</span>
                 </div>

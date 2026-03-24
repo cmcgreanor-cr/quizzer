@@ -104,6 +104,12 @@ export default function Home() {
                     Host
                   </button>
                   <button
+                    onClick={() => navigate(`/edit/${quiz.id}`)}
+                    className="flex-shrink-0 bg-slate-600 hover:bg-slate-500 text-white font-bold text-sm px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    Edit
+                  </button>
+                  <button
                     onClick={() => deleteQuiz(quiz.id)}
                     className="flex-shrink-0 text-white/30 hover:text-red-400 transition-colors text-lg leading-none"
                     title="Delete quiz"

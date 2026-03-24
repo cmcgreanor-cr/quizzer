@@ -50,6 +50,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/create" element={<CreateQuiz />} />
+        <Route path="/edit/:id" element={<CreateQuiz />} />
         <Route path="/host/:id" element={<HostView />} />
         <Route path="/join/:id" element={<JoinView />} />
       </Routes>

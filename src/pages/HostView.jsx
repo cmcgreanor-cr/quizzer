@@ -3,9 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ref, onValue, update, off } from 'firebase/database'
 import { QRCodeSVG } from 'qrcode.react'
 import { db } from '../firebase.js'
-
-const OPTION_COLORS = ['bg-red-500', 'bg-blue-500', 'bg-yellow-500', 'bg-green-500']
-const OPTION_SHAPES = ['▲', '●', '■', '◆']
+import { OPTION_COLORS, OPTION_SHAPES, optionGridCols } from '../constants.js'
 
 export default function HostView() {
   const { id } = useParams()
@@ -158,6 +156,12 @@ export default function HostView() {
               {participantCount === 0 && (
                 <p className="text-slate-500 text-sm mt-3">Waiting for at least one player to join...</p>
               )}
+              <button
+                onClick={() => navigate(`/edit/${id}`)}
+                className="mt-4 text-slate-500 hover:text-slate-300 text-sm transition-colors"
+              >
+                ✏ Edit quiz
+              </button>
             </div>
           )}
 
@@ -173,7 +177,7 @@ export default function HostView() {
               </div>
 
               {/* Answer distribution */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className={`grid ${optionGridCols(question.options.length)} gap-3`}>
                 {question.options.map((opt, oi) => {
                   const count = answerCounts[oi]
                   const pct = answeredCount > 0 ? Math.round((count / answeredCount) * 100) : 0
