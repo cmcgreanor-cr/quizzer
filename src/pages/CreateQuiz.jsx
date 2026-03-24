@@ -124,7 +124,7 @@ export default function CreateQuiz() {
           >
             ← Back
           </button>
-          <img src="/cr-logo.png" alt="Cloud Revolution" className="h-6 opacity-60" />
+          <img src="/cr-logo.svg" alt="Cloud Revolution" className="h-6 opacity-60" />
           <h1 className="text-2xl font-black ml-auto">{isEditing ? 'Edit Quiz' : 'Create Quiz'}</h1>
         </div>
 

@@ -63,7 +63,7 @@ export default function JoinView() {
 
   if (!participantId) return (
     <Screen>
-      <img src="/cr-logo.png" alt="Cloud Revolution" className="h-7 opacity-60 mb-8" />
+      <img src="/cr-logo.svg" alt="Cloud Revolution" className="h-7 opacity-60 mb-8" />
       <h1 className="text-3xl font-black mb-1">{quiz.title}</h1>
       <p className="text-white/50 mb-8">{quiz.questions.length} questions</p>
 

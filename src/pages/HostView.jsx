@@ -95,7 +95,7 @@ export default function HostView() {
       {/* Top bar */}
       <div className="bg-white/5 backdrop-blur-xl border-b border-white/10 px-5 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <img src="/cr-logo.png" alt="Cloud Revolution" className="h-6 opacity-70" />
+          <img src="/cr-logo.svg" alt="Cloud Revolution" className="h-6 opacity-70" />
           <div className="w-px h-5 bg-white/10" />
           <div>
             <h1 className="font-black text-lg leading-tight">{quiz.title}</h1>

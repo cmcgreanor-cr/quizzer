@@ -45,7 +45,7 @@ export default function Home() {
 
         {/* Header */}
         <div className="text-center pt-10 pb-10">
-          <img src="/cr-logo.png" alt="Cloud Revolution" className="h-10 mx-auto mb-8 opacity-90" />
+          <img src="/cr-logo.svg" alt="Cloud Revolution" className="h-10 mx-auto mb-8 opacity-90" />
           <h1 className="text-5xl font-black text-white mb-2 tracking-tight">Quizzer</h1>
           <p className="text-white/40 text-base">Live host-controlled quizzes</p>
         </div>
