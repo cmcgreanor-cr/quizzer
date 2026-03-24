@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ref, onValue, update, off } from 'firebase/database'
+import { ref, onValue, update, remove, off } from 'firebase/database'
 import { QRCodeSVG } from 'qrcode.react'
 import { db } from '../firebase.js'
 import { OPTION_COLORS, OPTION_SHAPES, optionGridCols } from '../constants.js'
@@ -108,6 +108,10 @@ export default function HostView() {
   const revealAnswer = () => update(ref(db, `quizzes/${id}`), { showAnswer: true })
   const nextQuestion = () => update(ref(db, `quizzes/${id}`), { currentQuestion: currentQ + 1, showAnswer: false, questionStartedAt: Date.now() })
   const endQuiz      = () => update(ref(db, `quizzes/${id}`), { status: 'ended' })
+  const resetQuiz    = async () => {
+    await Promise.all([remove(ref(db, `participants/${id}`)), remove(ref(db, `answers/${id}`))])
+    await update(ref(db, `quizzes/${id}`), { currentQuestion: -1, showAnswer: false, status: 'waiting', questionStartedAt: null })
+  }
 
   const copyLink = () => {
     navigator.clipboard.writeText(joinUrl)
@@ -349,12 +353,20 @@ export default function HostView() {
                   </div>
                 ))}
               </div>
-              <button
-                onClick={() => navigate('/')}
-                className="mt-10 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold px-8 py-3 rounded-xl transition-all shadow-lg"
-              >
-                Back to Home
-              </button>
+              <div className="mt-10 flex flex-col sm:flex-row gap-3 items-center">
+                <button
+                  onClick={resetQuiz}
+                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-lg px-8 py-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg shadow-cyan-900/30"
+                >
+                  ↺ Run Again
+                </button>
+                <button
+                  onClick={() => navigate('/')}
+                  className="text-white/40 hover:text-white/70 font-semibold px-6 py-4 rounded-2xl transition-colors text-sm"
+                >
+                  Back to Home
+                </button>
+              </div>
             </div>
           )}
         </div>
