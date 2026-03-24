@@ -126,6 +126,11 @@ export default function Home() {
         )}
 
       </div>
+
+      {/* Build stamp */}
+      <p className="text-white/15 text-xs text-center py-6 font-mono">
+        {__COMMIT_HASH__} · {new Date(__BUILD_TIME__).toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' })}
+      </p>
     </div>
   )
 }
