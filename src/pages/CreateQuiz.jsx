@@ -4,11 +4,14 @@ import { ref, push, set, update, get } from 'firebase/database'
 import { db } from '../firebase.js'
 import { OPTION_COLORS, OPTION_SHAPES } from '../constants.js'
 
+const TIMER_OPTIONS = [0, 10, 15, 20, 30, 45, 60]
+
 const newQuestion = () => ({
   text: '',
   options: ['', '', '', ''],
   correct: 0,
   explanation: '',
+  timer: 30,
 })
 
 export default function CreateQuiz() {
@@ -29,7 +32,7 @@ export default function CreateQuiz() {
       if (!snap.exists()) { setError('Quiz not found.'); setLoading(false); return }
       const data = snap.val()
       setTitle(data.title)
-      setQuestions(data.questions.map(q => ({ explanation: '', ...q })))
+      setQuestions(data.questions.map(q => ({ explanation: '', timer: 30, ...q })))
       setQuizStatus(data.status)
       setLoading(false)
     })
@@ -83,6 +86,7 @@ export default function CreateQuiz() {
           text: q.text.trim(),
           options: q.options.map(o => o.trim()),
           correct: q.correct,
+          timer: q.timer ?? 0,
           ...(q.explanation?.trim() ? { explanation: q.explanation.trim() } : {}),
         })),
       }
@@ -232,7 +236,7 @@ export default function CreateQuiz() {
               </div>
 
               {/* Explanation */}
-              <div>
+              <div className="mb-4">
                 <label className="text-white/30 text-xs font-semibold uppercase tracking-wider block mb-1.5">
                   Answer explanation <span className="normal-case font-normal">(optional — shown after reveal)</span>
                 </label>
@@ -243,6 +247,29 @@ export default function CreateQuiz() {
                   rows={2}
                   className="w-full bg-white/5 text-white placeholder-white/20 border border-white/10 focus:border-cyan-500/40 rounded-xl px-4 py-3 outline-none transition-all text-sm resize-none"
                 />
+              </div>
+
+              {/* Timer */}
+              <div className="flex items-center gap-3">
+                <label className="text-white/30 text-xs font-semibold uppercase tracking-wider flex-shrink-0">
+                  ⏱ Timer
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  {TIMER_OPTIONS.map(t => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => updateQuestion(qi, 'timer', t)}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        (q.timer ?? 0) === t
+                          ? 'bg-cyan-500 text-white'
+                          : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/70'
+                      }`}
+                    >
+                      {t === 0 ? 'Off' : `${t}s`}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           ))}

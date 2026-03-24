@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { ref, onValue, set, push, off } from 'firebase/database'
 import { db } from '../firebase.js'
@@ -15,6 +15,8 @@ export default function JoinView() {
   const [participantId, setParticipantId] = useState(
     () => sessionStorage.getItem(`quizzer_pid_${id}`) || null
   )
+  const [timeLeft, setTimeLeft] = useState(null)
+  const timerRef = useRef(null)
 
   useEffect(() => {
     const quizRef = ref(db, `quizzes/${id}`)
@@ -31,6 +33,22 @@ export default function JoinView() {
     onValue(ansRef, snap => setMyAnswers(snap.val() || {}))
     return () => off(ansRef)
   }, [participantId, id])
+
+  // Countdown timer (mirrors host)
+  useEffect(() => {
+    clearInterval(timerRef.current)
+    if (!quiz || quiz.status !== 'active' || quiz.showAnswer) { setTimeLeft(null); return }
+    const question = quiz.questions[quiz.currentQuestion]
+    const duration = question?.timer ?? 0
+    if (!duration || !quiz.questionStartedAt) { setTimeLeft(null); return }
+    const tick = () => {
+      const remaining = duration - Math.floor((Date.now() - quiz.questionStartedAt) / 1000)
+      setTimeLeft(Math.max(0, remaining))
+    }
+    tick()
+    timerRef.current = setInterval(tick, 500)
+    return () => clearInterval(timerRef.current)
+  }, [quiz?.currentQuestion, quiz?.showAnswer, quiz?.status, quiz?.questionStartedAt])
 
   const join = async () => {
     if (!name.trim() || joining) return
@@ -139,9 +157,32 @@ export default function JoinView() {
         />
       </div>
 
+      {/* Countdown bar */}
+      {timeLeft !== null && (question.timer ?? 0) > 0 && (
+        <div className="bg-white/5 h-2 flex-shrink-0">
+          <div
+            className={`h-2 transition-all duration-500 ${
+              timeLeft > 10 ? 'bg-cyan-500' : timeLeft > 5 ? 'bg-amber-400' : 'bg-red-500'
+            }`}
+            style={{ width: `${(timeLeft / (question.timer ?? 1)) * 100}%` }}
+          />
+        </div>
+      )}
+
       <div className="flex-1 flex flex-col p-5 max-w-lg mx-auto w-full">
-        <div className="text-white/30 text-xs font-bold uppercase tracking-widest text-center pt-4 pb-5">
-          Question {currentQ + 1} of {quiz.questions.length}
+        <div className="flex items-center justify-center gap-2 pt-4 pb-5">
+          <span className="text-white/30 text-xs font-bold uppercase tracking-widest">
+            Question {currentQ + 1} of {quiz.questions.length}
+          </span>
+          {timeLeft !== null && (
+            <span className={`text-xs font-black px-2 py-0.5 rounded-full ${
+              timeLeft > 10 ? 'bg-cyan-500/20 text-cyan-300' :
+              timeLeft > 5  ? 'bg-amber-500/20 text-amber-300' :
+                              'bg-red-500/30 text-red-300 animate-pulse'
+            }`}>
+              ⏱ {timeLeft}s
+            </span>
+          )}
         </div>
 
         {/* Question text */}

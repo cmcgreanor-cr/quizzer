@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ref, onValue, update, off } from 'firebase/database'
 import { QRCodeSVG } from 'qrcode.react'
@@ -13,6 +13,8 @@ export default function HostView() {
   const [answers, setAnswers] = useState({})
   const [copied, setCopied] = useState(false)
   const [notFound, setNotFound] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(null)
+  const timerRef = useRef(null)
 
   const joinUrl = `${window.location.origin}${window.location.pathname}#/join/${id}`
 
@@ -30,6 +32,30 @@ export default function HostView() {
 
     return () => { off(quizRef); off(partRef); off(ansRef) }
   }, [id])
+
+  // Countdown timer — auto-reveals when it hits 0
+  useEffect(() => {
+    clearInterval(timerRef.current)
+    if (!quiz || quiz.status !== 'active' || quiz.showAnswer) { setTimeLeft(null); return }
+    const question = quiz.questions[quiz.currentQuestion]
+    const duration = question?.timer ?? 0
+    if (!duration || !quiz.questionStartedAt) { setTimeLeft(null); return }
+
+    const tick = () => {
+      const elapsed = Math.floor((Date.now() - quiz.questionStartedAt) / 1000)
+      const remaining = duration - elapsed
+      if (remaining <= 0) {
+        clearInterval(timerRef.current)
+        setTimeLeft(0)
+        update(ref(db, `quizzes/${id}`), { showAnswer: true })
+      } else {
+        setTimeLeft(remaining)
+      }
+    }
+    tick()
+    timerRef.current = setInterval(tick, 500)
+    return () => clearInterval(timerRef.current)
+  }, [quiz?.currentQuestion, quiz?.showAnswer, quiz?.status, quiz?.questionStartedAt, id])
 
   if (notFound) return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center text-white text-center">
@@ -78,9 +104,9 @@ export default function HostView() {
     .sort((a, b) => b.score - a.score)
 
   // Host controls
-  const startQuiz    = () => update(ref(db, `quizzes/${id}`), { currentQuestion: 0, showAnswer: false, status: 'active' })
+  const startQuiz    = () => update(ref(db, `quizzes/${id}`), { currentQuestion: 0, showAnswer: false, status: 'active', questionStartedAt: Date.now() })
   const revealAnswer = () => update(ref(db, `quizzes/${id}`), { showAnswer: true })
-  const nextQuestion = () => update(ref(db, `quizzes/${id}`), { currentQuestion: currentQ + 1, showAnswer: false })
+  const nextQuestion = () => update(ref(db, `quizzes/${id}`), { currentQuestion: currentQ + 1, showAnswer: false, questionStartedAt: Date.now() })
   const endQuiz      = () => update(ref(db, `quizzes/${id}`), { status: 'ended' })
 
   const copyLink = () => {
@@ -176,9 +202,30 @@ export default function HostView() {
             <div className="flex flex-col gap-4">
               {/* Question card */}
               <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-4 sm:p-6 text-center border border-white/10">
-                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-2">
-                  Question {currentQ + 1} / {quiz.questions.length}
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest">
+                    Question {currentQ + 1} / {quiz.questions.length}
+                  </div>
+                  {timeLeft !== null && (
+                    <div className={`text-xs font-black px-2 py-0.5 rounded-full ${
+                      timeLeft > 10 ? 'bg-cyan-500/20 text-cyan-300' :
+                      timeLeft > 5  ? 'bg-amber-500/20 text-amber-300' :
+                                      'bg-red-500/30 text-red-300 animate-pulse'
+                    }`}>
+                      ⏱ {timeLeft}s
+                    </div>
+                  )}
                 </div>
+                {timeLeft !== null && (question.timer ?? 0) > 0 && (
+                  <div className="w-full bg-white/10 rounded-full h-1.5 mb-3 overflow-hidden">
+                    <div
+                      className={`h-1.5 rounded-full transition-all duration-500 ${
+                        timeLeft > 10 ? 'bg-cyan-400' : timeLeft > 5 ? 'bg-amber-400' : 'bg-red-400'
+                      }`}
+                      style={{ width: `${(timeLeft / (question.timer ?? 1)) * 100}%` }}
+                    />
+                  </div>
+                )}
                 <h2 className="text-lg sm:text-2xl font-bold leading-snug">{question.text}</h2>
               </div>
 
@@ -232,27 +279,38 @@ export default function HostView() {
               </div>
 
               {/* Controls — large touch targets for mobile */}
-              <div className="flex justify-center gap-3 pt-1 pb-2">
-                {!quiz.showAnswer ? (
+              <div className="flex flex-col items-center gap-3 pt-1 pb-2">
+                <div className="w-full max-w-xs">
+                  {!quiz.showAnswer ? (
+                    <button
+                      onClick={revealAnswer}
+                      className="bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-white font-black text-xl sm:text-lg px-8 py-5 sm:py-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg shadow-amber-900/30 w-full"
+                    >
+                      Reveal Answer
+                    </button>
+                  ) : currentQ < quiz.questions.length - 1 ? (
+                    <button
+                      onClick={nextQuestion}
+                      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:from-cyan-600 active:to-blue-700 text-white font-black text-xl sm:text-lg px-8 py-5 sm:py-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg shadow-cyan-900/30 w-full"
+                    >
+                      Next Question →
+                    </button>
+                  ) : (
+                    <button
+                      onClick={endQuiz}
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 active:from-green-600 active:to-emerald-700 text-white font-black text-xl sm:text-lg px-8 py-5 sm:py-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg w-full"
+                    >
+                      End Quiz & Show Results 🏆
+                    </button>
+                  )}
+                </div>
+                {/* End quiz early — always available during active state */}
+                {currentQ < quiz.questions.length - 1 && (
                   <button
-                    onClick={revealAnswer}
-                    className="bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-white font-black text-xl sm:text-lg px-8 py-5 sm:py-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg shadow-amber-900/30 w-full max-w-xs"
+                    onClick={() => { if (window.confirm('End the quiz now and show final results?')) endQuiz() }}
+                    className="text-white/25 hover:text-red-400 text-xs font-semibold transition-colors py-1"
                   >
-                    Reveal Answer
-                  </button>
-                ) : currentQ < quiz.questions.length - 1 ? (
-                  <button
-                    onClick={nextQuestion}
-                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:from-cyan-600 active:to-blue-700 text-white font-black text-xl sm:text-lg px-8 py-5 sm:py-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg shadow-cyan-900/30 w-full max-w-xs"
-                  >
-                    Next Question →
-                  </button>
-                ) : (
-                  <button
-                    onClick={endQuiz}
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 active:from-green-600 active:to-emerald-700 text-white font-black text-xl sm:text-lg px-8 py-5 sm:py-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg w-full max-w-xs"
-                  >
-                    End Quiz & Show Results 🏆
+                    End quiz early
                   </button>
                 )}
               </div>
