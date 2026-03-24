@@ -125,6 +125,7 @@ export default function HostView() {
       {/* Top bar */}
       <div className="bg-white/5 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0">
+          <button onClick={() => navigate('/')} className="text-white/40 hover:text-white transition-colors text-sm flex-shrink-0 pr-1">←</button>
           <img src="/cr-logo.svg" alt="Cloud Revolution" className="h-5 opacity-70 flex-shrink-0 hidden sm:block" />
           <div className="w-px h-5 bg-white/10 hidden sm:block" />
           <div className="min-w-0">
