@@ -74,7 +74,7 @@ export default function HostView() {
     </div>
   )
 
-  const participantList = Object.values(participants)
+  const participantList = Object.entries(participants).map(([pid, p]) => ({ pid, ...p }))
   const participantCount = participantList.length
   const currentQ = quiz.currentQuestion
   const question  = currentQ >= 0 ? quiz.questions[currentQ] : null
@@ -178,8 +178,13 @@ export default function HostView() {
               {participantCount > 0 && (
                 <div className="flex flex-wrap gap-2 justify-center mb-5 max-w-sm">
                   {participantList.map((p, i) => (
-                    <span key={i} className="bg-white/10 border border-white/10 text-white px-3 py-1 rounded-full text-sm font-semibold backdrop-blur-xl">
+                    <span key={i} className="bg-white/10 border border-white/10 text-white pl-3 pr-1.5 py-1 rounded-full text-sm font-semibold backdrop-blur-xl flex items-center gap-1.5">
                       {p.name}
+                      <button
+                        onClick={() => remove(ref(db, `participants/${id}/${p.pid}`))}
+                        className="text-white/30 hover:text-red-400 transition-colors leading-none text-xs"
+                        title="Remove player"
+                      >✕</button>
                     </span>
                   ))}
                 </div>

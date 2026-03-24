@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { ref, onValue, set, push, get, off } from 'firebase/database'
+import { ref, onValue, set, push, get, off, onDisconnect } from 'firebase/database'
 import { db } from '../firebase.js'
 import { OPTION_COLORS_INTERACTIVE, OPTION_COLORS, OPTION_SHAPES, optionGridCols } from '../constants.js'
 
@@ -46,6 +46,12 @@ export default function JoinView() {
     return () => off(ansRef)
   }, [participantId, id])
 
+  // Cancel the onDisconnect auto-remove once quiz goes active (keep mid-quiz players)
+  useEffect(() => {
+    if (!participantId || quiz?.status !== 'active') return
+    onDisconnect(ref(db, `participants/${id}/${participantId}`)).cancel()
+  }, [quiz?.status, participantId, id])
+
   // Countdown timer (mirrors host)
   useEffect(() => {
     clearInterval(timerRef.current)
@@ -67,6 +73,8 @@ export default function JoinView() {
     setJoining(true)
     const partRef = push(ref(db, `participants/${id}`))
     await set(partRef, { name: name.trim(), joinedAt: Date.now() })
+    // Auto-remove this participant if they close the browser while in the lobby
+    onDisconnect(partRef).remove()
     sessionStorage.setItem(`quizzer_pid_${id}`, partRef.key)
     setParticipantId(partRef.key)
     setJoining(false)
