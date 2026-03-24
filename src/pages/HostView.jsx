@@ -188,12 +188,20 @@ export default function HostView() {
               {participantCount === 0 && (
                 <p className="text-white/30 text-sm mt-3">Waiting for at least one player to join...</p>
               )}
-              <button
-                onClick={() => navigate(`/edit/${id}`)}
-                className="mt-4 text-white/30 hover:text-white/60 text-sm transition-colors"
-              >
-                ✏ Edit quiz
-              </button>
+              <div className="mt-4 flex gap-4">
+                <button
+                  onClick={() => navigate(`/qr/${id}`)}
+                  className="text-cyan-400/60 hover:text-cyan-300 text-sm transition-colors font-semibold"
+                >
+                  ⬜ Share QR
+                </button>
+                <button
+                  onClick={() => navigate(`/edit/${id}`)}
+                  className="text-white/30 hover:text-white/60 text-sm transition-colors"
+                >
+                  ✏ Edit quiz
+                </button>
+              </div>
             </div>
           )}
 

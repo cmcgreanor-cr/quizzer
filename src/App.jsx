@@ -4,6 +4,7 @@ import Home from './pages/Home.jsx'
 import CreateQuiz from './pages/CreateQuiz.jsx'
 import HostView from './pages/HostView.jsx'
 import JoinView from './pages/JoinView.jsx'
+import QRPage from './pages/QRPage.jsx'
 
 function SetupScreen() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="/edit/:id" element={<CreateQuiz />} />
         <Route path="/host/:id" element={<HostView />} />
         <Route path="/join/:id" element={<JoinView />} />
+        <Route path="/qr/:id" element={<QRPage />} />
       </Routes>
     </HashRouter>
   )
