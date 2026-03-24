@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { ref, onValue, set, push, off } from 'firebase/database'
+import { ref, onValue, set, push, get, off } from 'firebase/database'
 import { db } from '../firebase.js'
 import { OPTION_COLORS_INTERACTIVE, OPTION_COLORS, OPTION_SHAPES, optionGridCols } from '../constants.js'
 
@@ -26,6 +26,18 @@ export default function JoinView() {
     })
     return () => off(quizRef)
   }, [id])
+
+  // Verify cached participantId still exists in Firebase (cleared by Run Again)
+  useEffect(() => {
+    if (!participantId) return
+    const partRef = ref(db, `participants/${id}/${participantId}`)
+    get(partRef).then(snap => {
+      if (!snap.exists()) {
+        sessionStorage.removeItem(`quizzer_pid_${id}`)
+        setParticipantId(null)
+      }
+    })
+  }, [participantId, id])
 
   useEffect(() => {
     if (!participantId) return
