@@ -6,6 +6,7 @@ import { db } from '../firebase.js'
 export default function Home() {
   const [joinCode, setJoinCode] = useState('')
   const [quizzes, setQuizzes] = useState([])
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -112,13 +113,30 @@ export default function Home() {
                   >
                     Edit
                   </button>
-                  <button
-                    onClick={() => deleteQuiz(quiz.id)}
-                    className="flex-shrink-0 text-white/20 hover:text-red-400 transition-colors text-lg leading-none"
-                    title="Delete quiz"
-                  >
-                    ✕
-                  </button>
+                  {confirmDeleteId === quiz.id ? (
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button
+                        onClick={() => { deleteQuiz(quiz.id); setConfirmDeleteId(null) }}
+                        className="text-red-400 font-bold text-sm px-2 py-1 rounded-lg bg-red-400/10 hover:bg-red-400/20 transition-colors"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="text-white/40 font-bold text-sm px-2 py-1 rounded-lg hover:bg-white/10 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeleteId(quiz.id)}
+                      className="flex-shrink-0 text-white/20 hover:text-red-400 transition-colors text-lg leading-none"
+                      title="Delete quiz"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
